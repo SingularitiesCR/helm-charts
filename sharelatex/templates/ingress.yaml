@@ -1,0 +1,18 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: "{{ .Release.Name }}-{{ .Chart.Name }}-ingress"
+spec:
+  {{- if .Values.ingress.tls.enabled }}
+  tls:
+  - hosts:
+    - {{ .Values.ingress.host | quote }}
+    secretName: {{ .Release.Name }}-tls-secret
+  {{ end }}
+  rules:
+  - host: {{ .Values.ingress.host | quote }}
+    http:
+      paths:
+      - backend:
+          serviceName: "{{ .Release.Name }}-{{ .Chart.Name }}-svc"
+          servicePort: {{ .Values.sharelatex.port }}

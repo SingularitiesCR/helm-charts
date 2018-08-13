@@ -1,0 +1,16 @@
+# A headless service to create DNS records
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{ .Release.Name }}-{{ .Chart.Name }}-svc"
+  {{- include "labels" . | indent 2 }}
+spec:
+#  type: NodePort
+  type: ClusterIP
+  clusterIP: None
+  ports:
+  - name: "http"
+    port: {{ .Values.sharelatex.port }}
+  selector:
+    app: {{ quote .Chart.Name }}
+    release: {{ quote .Release.Name }}

@@ -1,0 +1,7 @@
+{{/* Generate basic labels */}}
+{{- define "labels" }}
+labels:
+  chart: {{ .Chart.Name }}
+  version: {{ .Chart.Version }}
+  release: {{ .Release.Name }}
+{{- end }}

@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: "{{ .Release.Name }}-{{ .Chart.Name }}-sts"
+  {{- include "labels" . | indent 2 }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ quote .Chart.Name }}
+      release: {{ quote .Release.Name }}
+  serviceName: "{{ .Release.Name }}-{{ .Chart.Name }}-svc"
+  replicas: {{ .Values.replicas }}
+  template:
+    metadata:
+      labels:
+        app: {{ quote .Chart.Name }}
+        release: {{ quote .Release.Name }}
+    spec:
+      containers:
+      - name: {{ quote .Chart.Name }}
+        image: {{ printf "%s:%s" .Values.image.repository .Values.image.tag | quote }}
+        imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+        env:
+        - name: "SHARELATEX_MONGO_URL"
+          value: "mongodb://{{ .Release.Name }}-mongodb-replicaset/sharelatex"
+        - name: "SHARELATEX_REDIS_HOST"
+          value: "{{ .Release.Name }}-redis-master"
+        - name: "SHARELATEX_APP_NAME"
+          value: "{{ .Chart.Name }}"
+        - name: "SHARELATEX_SITE_URL"
+          value: "http{{ if (.Values.ingress.tls.enabled) }}s{{end}}://{{ .Values.ingress.host }}"
+        - name: "SHARELATEX_ADMIN_EMAIL"
+          value: "{{ .Values.sharelatex.adminEmail }}"
+        {{- $relname := .Release.Name -}}
+        {{- with .Values.sharelatex.smtp  }}
+        - name: "SHARELATEX_EMAIL_FROM_ADDRESS"
+          value: {{ .from | quote }}
+        - name: "SHARELATEX_EMAIL_REPLY_TO"
+          value: {{ .replyTo | quote }}
+        - name: "SHARELATEX_EMAIL_SMTP_HOST"
+          value: {{ .host | quote }}
+        - name: "SHARELATEX_EMAIL_SMTP_PORT"
+          value: {{ .port | quote }}
+        - name: "SHARELATEX_EMAIL_SMTP_SECURE"
+          value: {{ .secure | quote }}
+        - name: "SHARELATEX_EMAIL_SMTP_USER"
+          valueFrom:
+            secretKeyRef:
+              name: "{{ $relname }}-smtp-secret"
+              key: user
+        - name: "SHARELATEX_EMAIL_SMTP_PASS"
+          valueFrom:
+            secretKeyRef:
+              name: "{{ $relname }}-smtp-secret"
+              key: password
+        - name: "SHARELATEX_EMAIL_SMTP_TLS_REJECT_UNAUTH"
+          value: "true"
+        - name: "SHARELATEX_EMAIL_SMTP_IGNORE_TLS"
+          value: {{ .secure | quote }}
+        - name: "SHARELATEX_CUSTOM_EMAIL_FOOTER"
+          value: {{ .footer | quote }}
+        {{- end }}
+        ports:
+        - name: "http"
+          port: {{ .Values.sharelatex.port }}
+          containerPort: 80
+        volumeMounts:
+        - name: datadir
+          mountPath: /var/lib/sharelatex
+        - name: logdir
+          mountPath: /var/log/sharelatex
+  volumeClaimTemplates:
+  - metadata:
+      name: datadir
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: {{ .Values.persistentVolume.dataDirSize | quote }}
+  - metadata:
+      name: logdir
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: {{ .Values.persistentVolume.logDirSize | quote }}
