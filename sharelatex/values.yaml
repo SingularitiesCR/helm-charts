@@ -1,0 +1,32 @@
+sharelatex:
+  adminEmail: devops@singularities.com
+  port: 80
+  smtp:
+    from: sharelatex@singularities.com
+    replyTo: noreply@singularities.com
+    host: smtp.gmail.com
+    port: 465
+    secure: true
+    footer: "<div>This system is run by department x </div>"
+
+mongodb-replicaset:
+  replicas: 1
+
+redis:
+  cluster:
+    enabled: false
+  usePassword: false
+
+image:
+  repository: sharelatex/sharelatex
+  tag: v1.2.1
+  pullPolicy: IfNotPresent
+
+ingress:
+  host: sharelatex.singularities.com
+  tls:
+    enabled: true
+
+persistentVolume:
+  dataDirSize: 10Gi
+  logDirSize: 10Gi
