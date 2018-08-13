@@ -1,0 +1,6 @@
+### Subcharts
+charts/*.tgz
+
+### Secrets
+smtp.*
+tls.*
