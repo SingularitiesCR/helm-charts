@@ -5,9 +5,7 @@ metadata:
   name: "{{ .Release.Name }}-{{ .Chart.Name }}-svc"
   {{- include "labels" . | indent 2 }}
 spec:
-#  type: NodePort
-  type: ClusterIP
-  clusterIP: None
+  type: NodePort
   ports:
   - name: "http"
     port: {{ .Values.sharelatex.port }}
