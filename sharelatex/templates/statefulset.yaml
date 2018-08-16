@@ -69,6 +69,12 @@ spec:
           mountPath: /var/lib/sharelatex
         - name: logdir
           mountPath: /var/log/sharelatex
+        readinessProbe:
+          httpGet:
+            path: /login
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 30
   volumeClaimTemplates:
   - metadata:
       name: datadir
